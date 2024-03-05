@@ -1,0 +1,70 @@
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Definindo o esquema relacional
+Base = declarative_base()
+
+class Cliente(Base):
+    __tablename__ = 'clientes'
+    id = Column(Integer, primary_key=True)
+    nome = Column(String)
+    cpf = Column(String)
+
+class Conta(Base):
+    __tablename__ = 'contas'
+    id = Column(Integer, primary_key=True)
+    cliente_id = Column(Integer)
+    saldo = Column(Integer)
+
+# Conectando ao banco de dados SQLite
+engine = create_engine('sqlite:///banco.db')
+Base.metadata.create_all(engine)
+
+# Inserindo dados de exemplo
+Session = sessionmaker(bind=engine)
+session = Session()
+
+cliente1 = Cliente(nome='João', cpf='12345678900')
+cliente2 = Cliente(nome='Maria', cpf='98765432100')
+
+conta1 = Conta(cliente_id=1, saldo=1000)
+conta2 = Conta(cliente_id=2, saldo=500)
+
+session.add_all([cliente1, cliente2, conta1, conta2])
+session.commit()
+
+# Recuperando dados
+clientes = session.query(Cliente).all()
+for cliente in clientes:
+    print(f"Cliente {cliente.nome} (CPF: {cliente.cpf})")
+
+contas = session.query(Conta).all()
+for conta in contas:
+    print(f"Conta {conta.id} - Saldo: {conta.saldo}")
+
+session.close()
+
+#NoSQL com Pymongo:
+
+import pymongo
+
+# Conectando ao MongoDB Atlas
+client = pymongo.MongoClient("mongodb+srv://<username>:<password>@cluster.mongodb.net/test?retryWrites=true&w=majority")
+db = client['banco']
+collection = db['clientes']
+
+# Inserindo documentos de exemplo
+cliente1 = {"nome": "João", "cpf": "12345678900"}
+cliente2 = {"nome": "Maria", "cpf": "98765432100"}
+
+collection.insert_many([cliente1, cliente2])
+
+# Recuperando dados
+clientes = collection.find()
+for cliente in clientes:
+    print(f"Cliente {cliente['nome']} (CPF: {cliente['cpf']})")
+
+client.close()
+
+
